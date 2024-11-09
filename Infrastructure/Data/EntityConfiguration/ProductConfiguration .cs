@@ -8,12 +8,11 @@ namespace Infrastructure.Data.EntityConfiguration
     {
         public void Configure(EntityTypeBuilder<Product> builder)
         {
-            builder.ToTable("Products"); 
 
             builder.HasKey(p => p.Id);
 
             builder.Property(p => p.Name)
-                .HasMaxLength(250) 
+                .HasMaxLength(255) 
                 .IsRequired(); 
 
             builder.Property(p => p.Description)
@@ -23,11 +22,8 @@ namespace Infrastructure.Data.EntityConfiguration
                 .HasColumnType("decimal(18, 2)")
                 .IsRequired();
 
-            builder.Property(p => p.Type)
-                .HasMaxLength(250);
-
             builder.Property(p => p.Brand)
-                .HasMaxLength(250);
+                .HasMaxLength(255);
 
             builder.Property(p => p.PictureUrl)
                 .HasMaxLength(500);

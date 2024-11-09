@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Core.Entities;
 using Infrastructure.Data.EntityConfiguration;
+using System;
 
 
 namespace Infrastructure.Data
@@ -9,11 +10,16 @@ namespace Infrastructure.Data
     {
 
         public DbSet<Product> Products { get; set; }
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<ProductTag> ProductTags { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(StoreContext).Assembly);
            
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(StoreContext).Assembly);
+            base.OnModelCreating(modelBuilder);
+
+
         }
     }
 }
