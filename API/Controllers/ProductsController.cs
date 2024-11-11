@@ -12,9 +12,9 @@ namespace API.Controllers
         private readonly IRepositoryBase<Product> repo = productRepository;
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid? categoryId, string? sort)
+        public async Task<IActionResult> Get(Guid? categoryId,List<string>? tags, string? sort)
         {
-            var spec = new ProductSpecification(categoryId,sort);
+            var spec = new ProductSpecification(categoryId,tags,sort);
             var products= await repo.ListAsync(spec);
             return Ok(products);
         }

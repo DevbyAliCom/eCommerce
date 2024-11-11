@@ -1,12 +1,16 @@
 ﻿using Core.Entities;
+using System.Linq;
 
 
 namespace Core.Specification
 {
     public class ProductSpecification : SpecificationBase<Product>
     {
-        public ProductSpecification(Guid? categoryId, string? sort) : base(
-         x => (!categoryId.HasValue || x.CategoryId == categoryId)
+        public ProductSpecification(Guid? categoryId, IList<string>? tags, string? sort) : base(
+         x => (
+             (!categoryId.HasValue || x.CategoryId == categoryId) &&
+             (tags == null || tags.Any(tag => x.Tags.Any(t => t.Tag.Name == tag)))
+         )
      )
         {
             switch (sort)
