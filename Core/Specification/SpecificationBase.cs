@@ -14,6 +14,13 @@ namespace Core.Specification
         public Expression<Func<T, bool>>? Criteria => criteria;
         public Expression<Func<T, object>>? OrderBy { get; private set; }
         public Expression<Func<T, object>>? OrderByDesc { get; private set; }
+
+        public int Take { get; private set; }
+
+        public int Skip { get; private set; }
+
+        public bool PagingEnabled { get; private set; }
+
         protected void AddOrderBy(Expression<Func<T, object>> orderByExpression)
         {
             OrderBy = orderByExpression;
@@ -22,6 +29,18 @@ namespace Core.Specification
         {
             OrderByDesc = orderByDescExpression; 
         }
+        public void ApplyPaging(int skip, int take)
+        {
+            PagingEnabled = true;
+            Take = take;
+            Skip = skip;
+        }
 
+        public IQueryable<T> ApplyCriteria(IQueryable<T> query)
+        {
+            if(Criteria!=null)
+                query=query.Where(Criteria);
+            return query;
+        }
     }
 }

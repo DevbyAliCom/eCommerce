@@ -17,7 +17,6 @@ namespace Core.Entities
         public Decimal Price { get; set; }
         public string? PictureUrl { get; set; } 
         public Guid CategoryId { get; set; }
-        
         public string? SKU { get; set; }
         public string Brand { get; set; } = string.Empty;
         public int QtyInStock { get; set; }

@@ -6,14 +6,16 @@ namespace Core.Specification
 {
     public class ProductSpecification : SpecificationBase<Product>
     {
-        public ProductSpecification(Guid? categoryId, IList<string>? tags, string? sort) : base(
+        public ProductSpecification(ProductSpecParams specParams) : base(
          x => (
-             (!categoryId.HasValue || x.CategoryId == categoryId) &&
-             (tags == null || tags.Any(tag => x.Tags.Any(t => t.Tag.Name == tag)))
+             (!specParams.CategoryId.HasValue || x.CategoryId == specParams.CategoryId) &&
+             (specParams.Tags.Count == 0 || specParams.Tags.Any(tag => x.Tags.Any(t => t.Tag.Id == tag)))
          )
      )
         {
-            switch (sort)
+            ApplyPaging(specParams.PageSize * (specParams.PageIndex - 1), specParams.PageSize);
+
+            switch (specParams.Sort)
             {
                 case "priceAsc":
                     AddOrderBy(x => x.Price);

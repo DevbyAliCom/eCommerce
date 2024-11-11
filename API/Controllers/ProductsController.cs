@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using API.RequestHelpers;
+using Core.Entities;
 using Core.Interfaces;
 using Core.Specification;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +13,19 @@ namespace API.Controllers
         private readonly IRepositoryBase<Product> repo = productRepository;
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid? categoryId,List<string>? tags, string? sort)
+        public async Task<IActionResult> Get([FromQuery] ProductSpecParams specParams)
         {
-            var spec = new ProductSpecification(categoryId,tags,sort);
+            var spec = new ProductSpecification(specParams);
             var products= await repo.ListAsync(spec);
-            return Ok(products);
+            var count= await repo.CountAsync(spec);
+            var pagination= new Pagination<Product>
+            (
+                specParams.PageIndex,
+                specParams.PageSize,
+                count,
+                products
+            );
+            return Ok(pagination);
         }
 
         [HttpGet("{id:guid}")]

@@ -14,6 +14,8 @@ namespace Infrastructure.Data
                 query = query.OrderBy(spec.OrderBy);
             if (spec.OrderByDesc != null)
                 query = query.OrderByDescending(spec.OrderByDesc);
+            if(spec.PagingEnabled)
+                query=query.Skip(spec.Skip).Take(spec.Take);
 
             return query;
         }
