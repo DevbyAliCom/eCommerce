@@ -1,86 +1,79 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
-using Infrastructure.Data;
+using Core.Specification;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController(IProductRepository productRepository) : ControllerBase
+    public class ProductsController(IRepositoryBase<Product> productRepository) : ControllerBase
     {
-        private readonly IProductRepository _productRepository = productRepository;
+        private readonly IRepositoryBase<Product> repo = productRepository;
 
         [HttpGet]
-        public async Task<IActionResult> GetAllProducts(CancellationToken cancellationToken)
+        public async Task<IActionResult> Get(Guid? categoryId, string? sort)
         {
-            var products = await _productRepository.GetAsync(cancellationToken);
+            var spec = new ProductSpecification(categoryId,sort);
+            var products= await repo.ListAsync(spec);
             return Ok(products);
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetProductById(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Get(Guid id)
         {
-            var product = await _productRepository.GetAsync(id, cancellationToken);
+            var product = await repo.GetAsync(id);
+
             if (product == null)
-            {
-                return NotFound();
-            }
+                 return NotFound();
+           
             return Ok(product);
         }
 
-        //[HttpGet("category/{categoryId:guid}")]
-        //public async Task<IActionResult> GetProductsByCategory(Guid categoryId, CancellationToken cancellationToken)
-        //{
-        //    var products = await _productRepository.GetProductsByCategoryAsync(categoryId, cancellationToken);
-        //    return Ok(products);
-        //}
-
         [HttpPost]
-        public IActionResult CreateProduct([FromBody] Product product)
+        public async Task<IActionResult> Add(Product product)
         {
-            if (product == null)
-            {
-                return BadRequest("Product is null.");
-            }
+            repo.Create(product);
 
-            _productRepository.Create(product);
-            _productRepository.Save();
-            return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+            if (await repo.SaveAsync())
+               return CreatedAtAction(nameof(Get), new { id = product.Id }, product);
+
+            return BadRequest("Something went wrong");
         }
 
         [HttpPut("{id:guid}")]
-        public IActionResult UpdateProduct(Guid id, [FromBody] Product product)
+        public async Task<IActionResult> Update(Guid id, Product product)
         {
             if (product == null || product.Id != id)
             {
                 return BadRequest("Product data is invalid.");
             }
+        
+            repo.Update(product);
 
-            var existingProduct = _productRepository.GetAsync(id, CancellationToken.None).Result;
-            if (existingProduct == null)
-            {
-                return NotFound();
-            }
+            if (await repo.SaveAsync())
+                return NoContent();
 
-            _productRepository.Update(product);
-            _productRepository.Save();
-            return NoContent();
+            return BadRequest("Something went wrong.");
         }
 
         [HttpDelete("{id:guid}")]
-        public IActionResult DeleteProduct(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var product = _productRepository.GetAsync(id, CancellationToken.None).Result;
-            if (product == null)
-            {
-                return NotFound();
-            }
+            var product = await repo.GetAsync(id);
 
-            _productRepository.Delete(product);
-            _productRepository.Save();
-            return NoContent();
+            if (product == null)
+                return NotFound();
+            
+            repo.Delete(product);
+
+            if (await repo.SaveAsync())
+                return NoContent();
+
+            return BadRequest("Something went wrong.");
         }
+
+        public bool Exist(Guid id) => repo.Exist(id);
+
     }
 }

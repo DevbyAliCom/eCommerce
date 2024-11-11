@@ -2,36 +2,41 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System;
+using Core.Entities;
 
 
 namespace Infrastructure.Data.Repositories
 {
-    public class RepositoryBase<T>(StoreContext dbContext) : IRepositoryBase<T> where T : class
+    public class RepositoryBase<T>(StoreContext context) : IRepositoryBase<T> where T : BaseEntity
     {
-        protected readonly StoreContext _dbContext = dbContext;
+        protected readonly StoreContext context = context;
 
-        public async Task<IEnumerable<T>> GetAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<T>> ListAllAsync() => await context.Set<T>().ToListAsync();
+
+        public async Task<T?> GetAsync(Guid id) => await context.Set<T>().FindAsync(id);
+        
+        public async Task<IReadOnlyList<T>> ListAsync(ISpecification<T> spec) 
+            => await ApplySpecification(spec).ToListAsync();
+        
+        public async Task<T?> GetWithSpecAsync(ISpecification<T> spec)
+           => await ApplySpecification(spec).FirstOrDefaultAsync();
+
+        public void Create(T entity) => context.Set<T>().Add(entity);
+
+        public void Update(T entity) => context.Set<T>().Update(entity);
+
+        public void Delete(T entity) => context.Set<T>().Remove(entity);
+
+        public async Task<bool> SaveAsync() => await context.SaveChangesAsync() > 0;
+
+        public bool Exist(Guid id) =>context.Set<T>().Any(x=>x.Id==id);
+
+       private IQueryable<T> ApplySpecification(ISpecification<T> spec)
         {
-            return await _dbContext.Set<T>().ToListAsync(cancellationToken);
+            return SpecificationEvaluator<T>.GetQuery(context.Set<T>().AsQueryable(), spec);
         }
 
-        public async Task<IEnumerable<T>> GetByConditionAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken)
-        {
-            return await _dbContext.Set<T>().Where(expression).ToListAsync(cancellationToken);
-        }
-
-        public async Task<T?> GetAsync(Guid id, CancellationToken cancellationToken)
-        {
-            return await _dbContext.Set<T>().FindAsync(new object[] { id }, cancellationToken);
-        }
-
-        public void Create(T entity) => _dbContext.Set<T>().Add(entity);
-
-        public void Update(T entity) => _dbContext.Set<T>().Update(entity);
-
-        public void Delete(T entity) => _dbContext.Set<T>().Remove(entity);
-
-        public void Save() => _dbContext.SaveChanges();
+      
     }
 
 }
