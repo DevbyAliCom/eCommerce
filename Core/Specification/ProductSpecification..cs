@@ -8,10 +8,11 @@ namespace Core.Specification
     {
         public ProductSpecification(ProductSpecParams specParams) : base(
          x => (
-             (!specParams.CategoryId.HasValue || x.CategoryId == specParams.CategoryId) &&
-             (specParams.Tags.Count == 0 || specParams.Tags.Any(tag => x.Tags.Any(t => t.Tag.Id == tag)))
-         )
-     )
+               (string.IsNullOrEmpty(specParams.Search) || x.Name.ToLower().Contains(specParams.Search.ToLower())) &&
+               (!specParams.CategoryId.HasValue || x.CategoryId == specParams.CategoryId) &&
+               (specParams.Tags.Count == 0 || specParams.Tags.Any(tag => x.Tags.Any(t => t.Tag.Id == tag))
+         )))
+           
         {
             ApplyPaging(specParams.PageSize * (specParams.PageIndex - 1), specParams.PageSize);
 
