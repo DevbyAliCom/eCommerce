@@ -1,4 +1,5 @@
 
+using API.Middleware;
 using Core.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Data.Repositories;
@@ -6,6 +7,8 @@ using Infrastructure.Health;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using FluentValidation;
+using API.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +23,9 @@ builder.Services.AddDbContext<StoreContext>(opt =>
 builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("database");
 
-builder.Services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>)); 
+builder.Services.AddScoped<IValidator<CreateProductDto>, CreateProductValidator>();
+builder.Services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
+builder.Services.AddCors();
          
 
 
@@ -56,6 +61,10 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     }
 });
 
+app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseCors(x=>x.AllowAnyHeader().AllowAnyMethod()
+   .WithOrigins("https://localhost:4200,http://localhost:4200"));
 
 app.MapControllers();
 
